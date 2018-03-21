@@ -4,6 +4,8 @@ A very simple Python script for playing back RLV style videos on a Raspberry Pi 
 
 This script depends on [python-ant](https://github.com/baderj/python-ant) and [python-omxplayer-wrapper](https://github.com/willprice/python-omxplayer-wrapper).
 
+## Instructions
+
 ```
 ~ $ sudo apt-get install -y python-setuptools libdbus-1-dev libdbus-glib-1-dev
 ~ $ sudo pip install virtualenv
