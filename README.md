@@ -21,3 +21,4 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ## Links
 * https://www.johannesbader.ch/2014/06/track-your-heartrate-on-raspberry-pi-with-ant/
 * http://www.trackprofiler.com/gpxpy/index.html
+* https://github.com/tkrajina/srtm.py
