@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import sys
 import time
 from ant.core import driver, node, event, message, log
