@@ -7,7 +7,7 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ## Instructions
 
 ```
-~ $ sudo apt-get install -y python-setuptools libdbus-1-dev libdbus-glib-1-dev
+~ $ sudo apt-get install -y python-setuptools python-dbus
 ~ $ sudo pip install virtualenv
 ~ $ git clone https://github.com/malban/pi-cyclevid.git
 ~ $ cd pi-cyclevid 
