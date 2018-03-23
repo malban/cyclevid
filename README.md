@@ -22,3 +22,5 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 * https://www.johannesbader.ch/2014/06/track-your-heartrate-on-raspberry-pi-with-ant/
 * http://www.trackprofiler.com/gpxpy/index.html
 * https://github.com/tkrajina/srtm.py
+* http://cycleseven.org/effect-of-hills-on-cycling-effort
+* http://www.sportsci.org/jour/9804/dps.html
