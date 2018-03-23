@@ -54,7 +54,15 @@ def main():
         player.quit()
         return
     
-    # TODO load GPX data if it exists
+    # Load GPX data if it exists
+    base_path, video_extenstion = os.path.splitext(args.video)
+    try:
+        gpx_file = open(base_path + '.gpx', 'r')
+        gpx = gpxpy.parse(gpx_file)
+        
+        # TODO load speed data
+    except:
+        print "Failed to load GPX data."
     
     # Create save directory if necessary.
     save_dir = os.path.expanduser("~/.pi-cyclevid")
