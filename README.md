@@ -12,7 +12,7 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ~ $ cd pi-cyclevid 
 ~/pi-cyclevid $ virtualenv --system-site-packages env
 ~/pi-cyclevid $ source env/bin/activate
-~/pi-cyclevid $ pip install -I -e git+https://github.com/baderj/python-ant.git#egg=ant
+~/pi-cyclevid $ pip install -I -e git+https://github.com/baderj/python-ant.git@develop#egg=ant
 ~/pi-cyclevid $ pip install omxplayer-wrapper gpxpy
 ~/pi-cyclevid $ sudo cp ant2.rules /etc/udev/rules.d/
 ```
