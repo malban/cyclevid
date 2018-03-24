@@ -23,3 +23,4 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 * https://github.com/tkrajina/srtm.py
 * http://cycleseven.org/effect-of-hills-on-cycling-effort
 * http://www.sportsci.org/jour/9804/dps.html
+* https://github.com/davidzof/wattzap-ce
