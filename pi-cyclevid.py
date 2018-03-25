@@ -31,7 +31,7 @@ def signal_handler(signal, frame):
         ant_sensor.stop()
     except:
         pass
-    
+
     print "done"
     sys.exit(0)
 
@@ -100,7 +100,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
         self.pedal_rpm_sys = 0
 
         self.wheel_stopped_count = 0
-        
+
         self.mutex = threading.Lock()
 
     def getWheelRpmAnt(self):
@@ -108,7 +108,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
         rpm = self.wheel_rpm_ant
         self.mutex.release()
         return rpm
-    
+
     def getWheelRpmSys(self):
         self.mutex.acquire()
         rpm = self.wheel_rpm_sys
@@ -116,8 +116,10 @@ class AntSpeedCadenceSensor(event.EventCallback):
         return rpm
 
     def toInt(self, raw):
+        print raw
         value = ord(raw[1]) << 8
         value += ord(raw[0])
+        print value
         return value / 1024
 
     def start(self):
@@ -127,9 +129,9 @@ class AntSpeedCadenceSensor(event.EventCallback):
         USBDEVFS_RESET = ord('U') << (4*2) | 20
         fcntl.ioctl(fd, USBDEVFS_RESET, 0)
         os.close(fd)
-    
+
         print("ANT+ starting node")
-        
+
         self.device = driver.USB2Driver(self.serial)
         self.antnode = node.Node(self.device)
         self.antnode.start()
@@ -165,11 +167,14 @@ class AntSpeedCadenceSensor(event.EventCallback):
 
     def process(self, msg):
         if isinstance(msg, message.ChannelBroadcastDataMessage):
-            pedal_stamp = toInt(msg.payload[0:2])
-            pedal_count = toInt(msg.payload[2:4])
-            wheel_stamp = toInt(msg.payload[4:6])
-            wheel_count = toInt(msg.payload[6:8])
-            if self.last_wheel_time == None or self.last_pedal_time == None:
+            print msg.payload
+            pedal_stamp = self.toInt(msg.payload[0:2])
+            pedal_count = self.toInt(msg.payload[2:4])
+            wheel_stamp = self.toInt(msg.payload[4:6])
+            wheel_count = self.toInt(msg.payload[6:8])
+            print "Data: %d %d %d %d" % (pedal_stamp, pedal_count, wheel_stamp, wheel_count)
+            if self.last_wheel_time is None or self.last_pedal_time is None:
+                print "ANT+ initializing values..."
                 self.last_wheel_stamp = wheel_stamp
                 self.last_pedal_stamp = pedal_stamp
                 self.last_valid_wheel_stamp = wheel_stamp
@@ -177,7 +182,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
                 self.last_wheel_count = wheel_count
                 self.last_pedal_count = pedal_count
                 self.last_wheel_time = time.time()
-                self.last_pedal_time = tile.time()
+                self.last_pedal_time = time.time()
                 return
 
             # Get ANT+ wheel stamp delta in milliseconds.
@@ -187,6 +192,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
                 wheel_stamp_delta = wheel_stamp + (64 - self.last_wheel_stamp)
             else:
                 wheel_stamp_delta = wheel_stamp - self.last_wheel_stamp
+            print "wheel stamp delta: %d" % (wheel_stamp_delta)
 
             # Get ANT+ stamp delta in milliseconds since last valid wheel reading.
             valid_wheel_stamp_delta = 0
@@ -195,6 +201,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
                 valid_wheel_stamp_delta = wheel_stamp + (64 - self.last_valid_wheel_stamp)
             else:
                 valid_wheel_stamp_delta = wheel_stamp - self.last_valid_wheel_stamp
+            print "valid wheel stamp delta: %d" % (valid_wheel_stamp_delta)
 
             wheel_count_delta = 0
             if wheel_count < self.last_wheel_count:
@@ -202,23 +209,28 @@ class AntSpeedCadenceSensor(event.EventCallback):
                 wheel_count_delta = wheel_count + (64 - self.last_wheel_count)
             else:
                 wheel_count_delta = wheel_count - self.last_wheel_count
+            print "wheel count delta: %d" % (wheel_count_delta)
 
             measured_wheel_rpm_sys = None
             measured_wheel_rpm_ant = None
-            if wheel_stamp_delta > 0:
+            if wheel_stamp_delta > 0 or True:
+                print "A"
                 if wheel_count_delta == 0:
                     self.wheel_stopped_count += 1
-                    if self.wheel_stopped_count >= 12:
+                    print "B; %d" % (self.wheel_stopped_count)
+                    if self.wheel_stopped_count >= 2:
+                        print "STOP 1"
                         measured_wheel_rpm_ant = 0
                         measured_wheel_rpm_sys = 0
                 else:
+                    print "C"
                     self.wheel_stopped_count = 0
 
                     # Get rpm based on system time
                     current_time = time.time()
                     delta_sys_time = (current_time - self.last_wheel_time) / 60.0
                     measured_wheel_rpm_sys = wheel_count_delta / delta_sys_time
-                    self.last_wheel_time = time.time()
+                    self.last_wheel_time = current_time
 
                     # Get rpm based on ANT+ time
                     delta_ant_time = (valid_wheel_stamp_delta / 1000.0) / 60.0
@@ -226,11 +238,14 @@ class AntSpeedCadenceSensor(event.EventCallback):
                     self.last_valid_wheel_stamp = wheel_stamp
             else:
                 self.wheel_stopped_count += 1
+                print "D: %d" % (self.wheel_stopped_count)
                 if self.wheel_stopped_count >= 6:
+                    print "STOP 2"
                     measured_wheel_rpm_ant = 0
                     measured_wheel_rpm_sys = 0
 
             if measured_wheel_rpm_ant is not None:
+                print "E"
                 self.mutex.acquire()
                 self.wheel_rpm_ant = (self.wheel_rpm_ant + measured_wheel_rpm_ant) * 0.5
                 self.wheel_rpm_sys = (self.wheel_rpm_sys + measured_wheel_rpm_sys) * 0.5
@@ -341,13 +356,8 @@ def main():
         # Get ANT+ speed
         wheel_rpm_ant = ant_sensor.getWheelRpmAnt()
         wheel_rpm_sys = ant_sensor.getWheelRpmSys()
-        
-        print wheel_rpm_ant
-        print wheel_rpm_sys
-        print args.wheel_diameter
-        
-        wheel_speed = wheel_rpm_ant * args.wheel_diameter * math.pi / 60.0
-        wheel_speed_sys = wheel_rpm_sys * args.wheel_diameter * math.pi / 60.0
+        wheel_speed_ant = wheel_rpm_ant * args.wheel_diameter * math.pi / 60.0
+        wheel_speed = args.speed_scale * wheel_rpm_sys * args.wheel_diameter * math.pi / 60.0
 
         if args.use_gradient and gpx_speed is not None:
             # TODO calculate adjusted cycle speed
@@ -358,7 +368,7 @@ def main():
             playback_rate = wheel_speed / video_speed
 
         # TODO store position
-        print "%f of %f (video speed: %f, wheel speed: %f (%f), playback rate: %f (%f)" % (position, duration, video_speed, wheel_speed, wheel_speed_sys, playback_rate, (position - last_pos) / 0.25)
+        print "%f of %f (video speed: %f, wheel speed: %f (%f), playback rate: %f (%f)" % (position, duration, video_speed, wheel_speed, wheel_rpm_sys, playback_rate, (position - last_pos) / 0.25)
 
         if playback_rate < 0.05:
             player.pause()
