@@ -12,8 +12,6 @@ last_point = None
 stamps = []
 speeds = []
 
-resampled_speeds = []
-
 for track in gpx.tracks:
     for segment in track.segments:
         print "raw points: %d" % (len(segment.points))
