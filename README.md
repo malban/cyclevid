@@ -48,6 +48,11 @@ optional arguments:
   * browse / select videos
   * start / stop playback
   * adjust playback speed
+  * display
+    * current speed / cadence
+    * distance traveled
+    * plots of data over time
+    
 
 ## Links
 * https://www.johannesbader.ch/2014/06/track-your-heartrate-on-raspberry-pi-with-ant/
