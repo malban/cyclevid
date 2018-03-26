@@ -16,6 +16,32 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ~/pi-cyclevid $ pip install omxplayer-wrapper gpxpy
 ~/pi-cyclevid $ sudo cp ant2.rules /etc/udev/rules.d/
 ```
+## Usage
+
+```
+usage: pi-cyclevid.py [-h] [--device DEVICE] [--start-position START_POSITION]
+                      [--speed-scale SPEED_SCALE] [--video-speed VIDEO_SPEED]
+                      [--weight WEIGHT] [--wheel-diameter WHEEL_DIAMETER]
+                      [--use-gradient]
+                      VIDEO_FILE
+
+positional arguments:
+  VIDEO_FILE            video file path
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --device DEVICE       ANT+ device path
+  --start-position START_POSITION
+                        start position in seconds
+  --speed-scale SPEED_SCALE
+                        speed scale factor
+  --video-speed VIDEO_SPEED
+                        default video speed in m/s
+  --weight WEIGHT       weight of the cyclist and bike in kg
+  --wheel-diameter WHEEL_DIAMETER
+                        wheel diameter in meters
+  --use-gradient        adjust speed based on road gradient.
+```
 
 ## TODO
 * integrate webserver / web interface to:
