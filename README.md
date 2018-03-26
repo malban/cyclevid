@@ -17,6 +17,12 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ~/pi-cyclevid $ sudo cp ant2.rules /etc/udev/rules.d/
 ```
 
+## TODO
+* integrate webserver / web interface to:
+  * browse / select videos
+  * start / stop playback
+  * adjust playback speed
+
 ## Links
 * https://www.johannesbader.ch/2014/06/track-your-heartrate-on-raspberry-pi-with-ant/
 * http://www.trackprofiler.com/gpxpy/index.html
