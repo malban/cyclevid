@@ -346,13 +346,13 @@ def main():
     default_video_speed = 10.0
     if args.video_speed is not None:
         default_video_speed = args.video_speed
-    else if "drive" in video_name:
+    elif "drive" in video_name:
         default_video_speed = 18.0
-    else if "cycle" in video_name:
+    elif "cycle" in video_name:
         default_video_speed = 9.0
-    else if "run" in video_name:
+    elif "run" in video_name:
         default_video_speed = 3.35
-    else if "walk" in video_name:
+    elif "walk" in video_name:
         default_video_speed = 1.4
     print "default video speed: %f" % (default_video_speed)
     
