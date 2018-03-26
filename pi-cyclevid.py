@@ -238,8 +238,8 @@ class AntSpeedCadenceSensor(event.EventCallback):
                     delta_ant_time = (valid_wheel_stamp_delta / 1000.0) / 60.0
                     measured_wheel_rpm_ant = wheel_count_delta / delta_ant_time
                     self.last_valid_wheel_stamp = wheel_stamp
-                    print "delta sys: %f  delta ant: %f" % (delta_sys_time, delta_ant_time)
-                    print "rpm sys: %f  rpm_ant: %f" % (measured_wheel_rpm_sys, measured_wheel_rpm_ant)
+                    #print "delta sys: %f  delta ant: %f" % (delta_sys_time, delta_ant_time)
+                    #print "rpm sys: %f  rpm_ant: %f" % (measured_wheel_rpm_sys, measured_wheel_rpm_ant)
 
             else:
                 self.wheel_stopped_count += 1
@@ -273,7 +273,7 @@ def main():
     parser.add_argument('--speed-scale', type=float,
                     help='speed scale factor', default=1.0)
     parser.add_argument('--video-speed', type=float,
-                    help='default video speed in m/s', default=10.0)
+                    help='default video speed in m/s')
     parser.add_argument('--weight', type=float,
                     help='weight of the cyclist and bike in kg', default=75.0)
     parser.add_argument('--wheel-diameter', type=float,
@@ -342,13 +342,28 @@ def main():
 
     player.play()
     player.set_position(start_position)
+
+    default_video_speed = 10.0
+    if args.video_speed is not None:
+        default_video_speed = args.video_speed
+    else if "drive" in video_name:
+        default_video_speed = 18.0
+    else if "cycle" in video_name:
+        default_video_speed = 9.0
+    else if "run" in video_name:
+        default_video_speed = 3.35
+    else if "walk" in video_name:
+        default_video_speed = 1.4
+    print "default video speed: %f" % (default_video_speed)
+    
+
     while True:
         try:
             position = max(0, player.position())
         except:
             break
 
-        video_speed = args.video_speed
+        video_speed = default_video_speed
         # Get GPX speed if it exists
         if gpx_speed is not None:
             index = min(int(position), len(gpx_speed) - 1)
