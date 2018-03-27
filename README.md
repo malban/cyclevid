@@ -7,7 +7,7 @@ This script depends on [python-ant](https://github.com/baderj/python-ant), [pyth
 ## Instructions
 
 ```
-~ $ sudo apt-get install -y python-setuptools python-dbus python-pathlib python-virtualenv python-flask
+~ $ sudo apt-get install -y python-setuptools python-dbus python-pathlib python-virtualenv python-flask ffmpeg
 ~ $ git clone https://github.com/malban/pi-cyclevid.git
 ~ $ cd pi-cyclevid 
 ~/pi-cyclevid $ virtualenv --system-site-packages env
