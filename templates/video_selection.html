@@ -1,0 +1,12 @@
+<html>
+  <head>
+    <title>Video Selection</title>
+  </head>
+  
+  <body>
+    <H1>Videos:</H1>
+    {% for video in videos %}
+    <div><p>{{video[1]}} <img src="static/{{video[1]}}.jpg" height="100"> </p></div>
+    {% endfor %}
+  </body>
+</html>
