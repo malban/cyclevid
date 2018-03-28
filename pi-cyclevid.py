@@ -298,6 +298,10 @@ def main():
     player = OMXPlayer(args.video)
     try:
         player.pause()
+        player.mute()
+        player.play()
+        sleep(2.5)
+        player.pause()
     except:
         print "Invalid video file."
         player.quit()
