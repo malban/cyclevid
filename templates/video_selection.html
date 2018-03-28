@@ -6,7 +6,7 @@
   <body>
     <H1>Videos:</H1>
     {% for video in videos %}
-    <div><p>{{video[1]}} <img src="static/{{video[1]}}.jpg" height="100"> </p></div>
+    <div><p><a href="playback_controls/{{video[1]}}"><img src="static/{{video[1]}}.jpg" height="200"> {{video[1]}} </a></p></div>
     {% endfor %}
   </body>
 </html>

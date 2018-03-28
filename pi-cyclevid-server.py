@@ -2,7 +2,9 @@
 # coding: utf-8
 import argparse
 import os
+import signal
 import subprocess
+import sys
 
 from flask import Flask
 from flask import render_template
@@ -10,9 +12,56 @@ from flask import render_template
 app = Flask(__name__)
 
 videos = []
+subproc = None
+playing_video_file = None
+script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+
 
 @app.route('/')
 def entry_point():
+    if subproc is not None:
+        return render_template('playback_controls.html', video_file=playing_video_file)
+    else:
+        return render_template('video_selection.html', videos=videos)
+
+@app.route('/playback_controls/<video_file>')
+def playback_controls(video_file):
+    global playing_video_file
+    if subproc is not None:
+        return render_template('playback_controls.html', video_file=playing_video_file)
+    else:
+        return render_template('playback_controls.html', video_file=video_file)
+
+@app.route('/play/<video_file>')
+def play(video_file):
+    global playing_video_file
+    global subproc
+    if subproc is not None:
+        return render_template('playback_controls.html', video_file=playing_video_file)
+    else:
+        # TODO start playback
+        playing_video_file = video_file
+        video_path=None
+        for filepath, filename in videos:
+            if filename == video_file:
+                video_path = filepath
+                
+        if video_path is not None:
+            cmd = 'python %s/pi-cyclevid.py %s' % (script_path, video_path)
+            print cmd
+            subproc = subprocess.Popen(['python', script_path + '/pi-cyclevid.py', video_path], stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        else:
+            print "failed to run video: %s" % (video_file)
+        
+        return render_template('playback_controls.html', video_file=video_file)
+
+@app.route('/stop')
+def stop():
+    global subproc
+    if subproc is not None:
+        subproc.send_signal(signal.SIGINT)
+        subproc = None
+        playing_video_file = None
     return render_template('video_selection.html', videos=videos)
 
 if __name__ == '__main__':
@@ -35,7 +84,11 @@ if __name__ == '__main__':
                 videos.append([filepath, filename])
                 if not os.path.isfile(thumbnail_path):
                     print "getting thumbnail for %s" % (filepath)
-                    subprocess.call(['ffmpeg', '-ss', '00:05:00', '-i', filepath, '-vframes', '1', '-v:q', '5', thumbnail_path], stdin=None, stdout=None, stderr=None, shell=False)
+                    cmd = 'ffmpeg -ss 00:05:00 -i %s -vframes 1 -v:q 5 %s' % (filepath, thumbnail_path)
+                    print cmd
+                    proc = subprocess.Popen([cmd], stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+                    output = proc.stdout.read()
+                    print output
 
     print videos
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=8080)
