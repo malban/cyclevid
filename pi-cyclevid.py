@@ -98,6 +98,8 @@ class AntSpeedCadenceSensor(event.EventCallback):
         self.pedal_rpm_ant = 0
         self.wheel_rpm_sys = 0
         self.pedal_rpm_sys = 0
+        
+        self.total_wheel_rotations = 0
 
         self.wheel_stopped_count = 0
 
@@ -114,6 +116,12 @@ class AntSpeedCadenceSensor(event.EventCallback):
         rpm = self.wheel_rpm_sys
         self.mutex.release()
         return rpm
+        
+    def getTotalWheelRotations(self):
+        self.mutex.acquire()
+        rotations = self.total_wheel_rotations
+        self.mutex.release()
+        return rotations
 
     def toInt(self, raw):
         value = ord(raw[1]) << 8
@@ -238,6 +246,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
                     delta_ant_time = (valid_wheel_stamp_delta / 1000.0) / 60.0
                     measured_wheel_rpm_ant = wheel_count_delta / delta_ant_time
                     self.last_valid_wheel_stamp = wheel_stamp
+                    
                     #print "delta sys: %f  delta ant: %f" % (delta_sys_time, delta_ant_time)
                     #print "rpm sys: %f  rpm_ant: %f" % (measured_wheel_rpm_sys, measured_wheel_rpm_ant)
 
@@ -254,6 +263,7 @@ class AntSpeedCadenceSensor(event.EventCallback):
                 self.mutex.acquire()
                 self.wheel_rpm_ant = (self.wheel_rpm_ant + measured_wheel_rpm_ant) * 0.5
                 self.wheel_rpm_sys = (self.wheel_rpm_sys + measured_wheel_rpm_sys) * 0.5
+                self.total_wheel_rotations += wheel_count_delta
                 self.mutex.release()
 
             self.last_wheel_stamp = wheel_stamp
@@ -382,6 +392,8 @@ def main():
         wheel_rpm_sys = ant_sensor.getWheelRpmSys()
         wheel_speed_ant = wheel_rpm_ant * args.wheel_diameter * math.pi / 60.0
         wheel_speed = args.speed_scale * wheel_rpm_sys * args.wheel_diameter * math.pi / 60.0
+        total_distance_m = args.wheel_diameter * math.pi * ant_sensor.getTotalWheelRotations()
+        total_distance_miles = total_distance_m * 0.000621371
 
         if args.use_gradient and gpx_speed is not None:
             # TODO calculate adjusted cycle speed
@@ -392,7 +404,7 @@ def main():
             playback_rate = wheel_speed / video_speed
 
         # TODO store position
-        print "%f of %f (video speed: %f, wheel speed: %f (%f) m/s [%f mph], playback rate: %f (%f)" % (position, duration, video_speed, wheel_speed, wheel_speed_ant, wheel_speed * 2.23694, playback_rate, (position - last_pos) / 0.25)
+        print "data, %f, %f, %f, %f, %f, %f, %f, %f, %f" % (position, duration, video_speed, wheel_speed_ant, wheel_speed_ant * 2.23694, playback_rate, (position - last_pos) / 0.25, total_distance_m, total_distance_miles)
 
         if playback_rate < 0.05:
             player.pause()

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 import argparse
+import fcntl
 import os
 import signal
 import subprocess
@@ -17,6 +18,22 @@ playing_video_file = None
 script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 
+def update_status():
+    global subproc
+    if subproc is not None:
+        try:
+            data_str = subproc.stdout.readline()
+            if data_str.startswith("data,"):
+                data_values = data_str.split(',')
+                if len(data_values) == 10:
+                    speed = float(data_values[5])
+                    distance = float(data_values[9])
+                    print data_values
+        except:
+            pass
+            
+        threading.Timer(1, update_status).start()
+        
 @app.route('/')
 def entry_point():
     if subproc is not None:
@@ -50,6 +67,13 @@ def play(video_file):
             cmd = 'python %s/pi-cyclevid.py %s' % (script_path, video_path)
             print cmd
             subproc = subprocess.Popen(['python', script_path + '/pi-cyclevid.py', video_path], stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            
+            # Make stdout non-blocking.
+            fd = subproc.stdout.fileno()
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+            
+            threading.Timer(1, update_status).start()
         else:
             print "failed to run video: %s" % (video_file)
         
