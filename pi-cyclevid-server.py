@@ -6,6 +6,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 
 from flask import Flask
 from flask import render_template
@@ -20,17 +21,23 @@ script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 def update_status():
     global subproc
+    print "update status"
     if subproc is not None:
-        try:
-            data_str = subproc.stdout.readline()
-            if data_str.startswith("data,"):
-                data_values = data_str.split(',')
-                if len(data_values) == 10:
-                    speed = float(data_values[5])
-                    distance = float(data_values[9])
-                    print data_values
-        except:
-            pass
+        has_data = True
+        while has_data:
+            try:
+                data_str = subproc.stdout.readline()
+                print data_str
+                if data_str.startswith("data,"):
+                    data_values = data_str.split(',')
+                    if len(data_values) == 10:
+                        speed = float(data_values[5])
+                        distance = float(data_values[9])
+                        print data_values
+            except:
+                print "no data"
+                has_data = False
+                pass
             
         threading.Timer(1, update_status).start()
         
@@ -66,7 +73,7 @@ def play(video_file):
         if video_path is not None:
             cmd = 'python %s/pi-cyclevid.py %s' % (script_path, video_path)
             print cmd
-            subproc = subprocess.Popen(['python', script_path + '/pi-cyclevid.py', video_path], stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            subproc = subprocess.Popen(['python', script_path + '/pi-cyclevid.py', video_path], bufsize=1, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             
             # Make stdout non-blocking.
             fd = subproc.stdout.fileno()

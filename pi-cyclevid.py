@@ -130,6 +130,8 @@ class AntSpeedCadenceSensor(event.EventCallback):
 
     def start(self):
         print "ANT+ resetting usb device ..."
+        sys.stdout.flush()
+
         fd = os.open(self.serial, os.O_WRONLY)
         if fd < 0: sys.exit(1)
         USBDEVFS_RESET = ord('U') << (4*2) | 20
@@ -137,11 +139,14 @@ class AntSpeedCadenceSensor(event.EventCallback):
         os.close(fd)
 
         print("ANT+ starting node")
+        sys.stdout.flush()
 
         self.device = driver.USB2Driver(self.serial)
         self.antnode = node.Node(self.device)
         self.antnode.start()
         print("ANT+ setup channel")
+        sys.stdout.flush()
+
         key = node.NetworkKey('N:ANT+', self.netkey)
         self.antnode.setNetworkKey(0, key)
         self.channel = self.antnode.getFreeChannel()
@@ -157,6 +162,8 @@ class AntSpeedCadenceSensor(event.EventCallback):
 
         self.channel.registerCallback(self)
         print("ANT+ start listening for events")
+        sys.stdout.flush()
+
 
     def stop(self):
         if self.channel:
@@ -405,6 +412,7 @@ def main():
 
         # TODO store position
         print "data, %f, %f, %f, %f, %f, %f, %f, %f, %f" % (position, duration, video_speed, wheel_speed_ant, wheel_speed_ant * 2.23694, playback_rate, (position - last_pos) / 0.25, total_distance_m, total_distance_miles)
+        sys.stdout.flush()
 
         if playback_rate < 0.05:
             player.pause()
