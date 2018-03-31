@@ -44,13 +44,10 @@ optional arguments:
 ```
 
 ## TODO
-* integrate webserver / web interface to:
-  * browse / select videos
-  * start / stop playback
+* clean up code
+* improve webserver / web interface to:
   * adjust playback speed
   * display
-    * current speed / cadence
-    * distance traveled
     * plots of data over time
     
 
