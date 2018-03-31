@@ -8,8 +8,9 @@ import subprocess
 import sys
 import threading
 
-from flask import Flask
+from flask import Flask, Response
 from flask import render_template
+from time import sleep
 
 app = Flask(__name__)
 
@@ -17,10 +18,17 @@ videos = []
 subproc = None
 playing_video_file = None
 script_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-
+total_distance = None
+current_speed = None
+message_count = None
+data_mutex = threading.Lock()
 
 def update_status():
     global subproc
+    global data_mutex
+    global current_speed
+    global total_distance
+    global message_count
     print "update status"
     if subproc is not None:
         has_data = True
@@ -30,9 +38,12 @@ def update_status():
                 print data_str
                 if data_str.startswith("data,"):
                     data_values = data_str.split(',')
-                    if len(data_values) == 10:
-                        speed = float(data_values[5])
-                        distance = float(data_values[9])
+                    if len(data_values) == 11:
+                        data_mutex.acquire()
+                        current_speed = float(data_values[5])
+                        total_distance = float(data_values[9])
+                        message_count = int(data_values[10])
+                        data_mutex.release()
                         print data_values
             except:
                 print "no data"
@@ -40,7 +51,35 @@ def update_status():
                 pass
             
         threading.Timer(1, update_status).start()
-        
+
+@app.route("/data")
+def stream():
+    def eventStream():
+        global data_mutex
+        global current_speed
+        global total_distance
+        global message_count
+        while True:
+            sleep(0.1)
+            s = None
+            d = None
+            c = None
+            data_mutex.acquire()
+            if current_speed is not None and total_distance is not None:
+                s = current_speed
+                d = total_distance
+                c = message_count
+                current_speed = None
+                total_distance = None
+                message_count = None
+            data_mutex.release()
+            
+            if s is not None and d is not None:
+                msg = "data: speed(%f mph) distance(%f miles) count(%d)\n\n" % (s, d, c)
+                print msg
+                yield msg
+    return Response(eventStream(), mimetype="text/event-stream")
+
 @app.route('/')
 def entry_point():
     if subproc is not None:
@@ -61,7 +100,7 @@ def play(video_file):
     global playing_video_file
     global subproc
     if subproc is not None:
-        return render_template('playback_controls.html', video_file=playing_video_file)
+        return render_template('play.html', video_file=playing_video_file)
     else:
         # TODO start playback
         playing_video_file = video_file
@@ -84,7 +123,7 @@ def play(video_file):
         else:
             print "failed to run video: %s" % (video_file)
         
-        return render_template('playback_controls.html', video_file=video_file)
+        return render_template('play.html', video_file=video_file)
 
 @app.route('/stop')
 def stop():
@@ -122,4 +161,4 @@ if __name__ == '__main__':
                     print output
 
     print videos
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, threaded=True, host='0.0.0.0', port=8080)
